@@ -12,7 +12,15 @@ export const metadata = {
   description: "Encuentra la propiedad ideal en Guatemala con Inmovalores.",
 };
 
+const API_URL = 'https://theodore-unhasted-erlene.ngrok-free.dev/api';
+// Helper para limpiar la url base si ya tiene /api
+const getImageUrl = (path) => {
+  const baseUrl = API_URL.endsWith('/api') ? API_URL : `${API_URL}/api`;
+  return `${baseUrl}/images/${path}`;
+}
+
 export default function RootLayout({ children }) {
+  const logoUrl = getImageUrl('logo_redondo_inmovalores.png');
   return (
     <html lang="es" className="light">
       <head>
@@ -28,7 +36,7 @@ export default function RootLayout({ children }) {
           <div className="max-w-7xl mx-auto flex items-center justify-between bg-white/5 backdrop-blur-xl rounded-full border border-white/10 px-8 py-3 shadow-2xl">
             <div className="flex items-center gap-2 flex-shrink-0">
               <a href="/">
-                <img src="http://localhost:8000/api/images/logo_redondo_inmovalores.png" alt="InmoValores Logo" className="w-10 h-10 object-contain" />
+                <img src={logoUrl} alt="InmoValores Logo" className="w-10 h-10 object-contain" />
               </a>
               <h2 className="text-white text-xl font-extrabold tracking-tight">INMOVALORES</h2>
             </div>
@@ -58,7 +66,7 @@ export default function RootLayout({ children }) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16">
               <div>
                 <div className="flex items-center gap-2 mb-8">
-                  <img src="http://localhost:8000/api/images/logo_redondo_inmovalores.png" alt="InmoValores Logo" className="w-12 h-12 object-contain" />
+                  <img src={logoUrl} alt="InmoValores Logo" className="w-12 h-12 object-contain" />
                   <h2 className="text-xl font-extrabold tracking-tight text-[#1A1A1A]">INMOVALORES</h2>
                 </div>
                 <p className="text-gray-500 mb-4 leading-relaxed text-sm">Real Estate</p>

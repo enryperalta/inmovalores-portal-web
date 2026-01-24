@@ -15,7 +15,7 @@ export default function PropertyCard({ property }) {
         let fileName = img.replace('uploads/images/', '').replace('uploads\\images\\', '');
 
         // Usar la URL de la API configurada (Ngrok) en lugar de localhost
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+        const baseUrl = 'https://theodore-unhasted-erlene.ngrok-free.dev/api';
         const rootUrl = baseUrl.replace('/api', '');
 
         return `${rootUrl}/api/images/${fileName}`;
