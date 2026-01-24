@@ -21,7 +21,7 @@ export async function getProperty(id) {
 
 export async function getPropertyAssignment(id) {
     try {
-        const res = await fetch(`${API_BASE_URL}/contacts/property-assignment/${id}`, {
+        const res = await fetch(`${API_BASE_URL}/properties/${id}/assignment`, {
             next: { revalidate: 300 } // Revalidar asignaciones más seguido
         });
         if (!res.ok) return { assigned: false };
