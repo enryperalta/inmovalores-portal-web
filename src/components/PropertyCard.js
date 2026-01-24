@@ -13,7 +13,12 @@ export default function PropertyCard({ property }) {
         // El backend monta uploads/images en /api/images
         // Si la ruta guardada incluye 'uploads/images/', la limpiamos
         let fileName = img.replace('uploads/images/', '').replace('uploads\\images\\', '');
-        return `http://localhost:8000/api/images/${fileName}`;
+
+        // Usar la URL de la API configurada (Ngrok) en lugar de localhost
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+        const rootUrl = baseUrl.replace('/api', '');
+
+        return `${rootUrl}/api/images/${fileName}`;
     };
 
     let statusText = property.status || 'Disponible';
