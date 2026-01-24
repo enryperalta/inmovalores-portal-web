@@ -4,10 +4,14 @@ import { useState, useEffect } from 'react';
 import { getProperty, getPropertyAssignment } from '@/lib/api';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function PropertyDetailPage({ params: paramsPromise }) {
     const [property, setProperty] = useState(null);
     const [assignment, setAssignment] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null); // Nuevo estado para error
     const [activeImage, setActiveImage] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalIndex, setModalIndex] = useState(0);
@@ -27,10 +31,14 @@ export default function PropertyDetailPage({ params: paramsPromise }) {
                     getProperty(params.id),
                     getPropertyAssignment(params.id)
                 ]);
+
+                if (!propData) throw new Error("API returned null property");
+
                 setProperty(propData);
                 setAssignment(assignData);
             } catch (e) {
-                console.error(e);
+                console.error("❌ Error loading property:", e);
+                setError(e.message); // Guardar mensaje de error
             } finally {
                 setLoading(false);
             }
@@ -53,6 +61,21 @@ export default function PropertyDetailPage({ params: paramsPromise }) {
         </div>
     );
 
+    // Mostrar error real para depuración
+    if (error) return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center text-[#1A1A1A]">
+            <h1 className="text-4xl font-black mb-4 text-red-600">Error</h1>
+            <p className="text-xl text-gray-500 mb-4">No se pudo cargar la propiedad.</p>
+            <div className="bg-gray-100 p-4 rounded-lg text-left text-sm font-mono max-w-lg overflow-auto mb-8">
+                <p><strong>Detalle:</strong> {error}</p>
+                <p><strong>ID solicitado:</strong> {params?.id}</p>
+            </div>
+            <Link href="/" className="px-8 py-3 bg-[#137fec] text-white font-bold rounded-lg shadow-lg">
+                Volver al inicio
+            </Link>
+        </div>
+    );
+
     if (!property) return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center text-[#1A1A1A]">
             <h1 className="text-4xl font-black mb-4">404</h1>
@@ -62,6 +85,7 @@ export default function PropertyDetailPage({ params: paramsPromise }) {
             </Link>
         </div>
     );
+
 
     const images = property.images ? (typeof property.images === 'string' ? JSON.parse(property.images) : property.images) : [];
 
