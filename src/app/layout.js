@@ -15,8 +15,7 @@ export const metadata = {
 const API_URL = 'https://theodore-unhasted-erlene.ngrok-free.dev/api';
 // Helper para limpiar la url base si ya tiene /api
 const getImageUrl = (path) => {
-  const baseUrl = API_URL.endsWith('/api') ? API_URL : `${API_URL}/api`;
-  return `${baseUrl}/images/${path}`;
+  return `/api/proxy-image?filename=${encodeURIComponent(path)}`;
 }
 
 export default function RootLayout({ children }) {

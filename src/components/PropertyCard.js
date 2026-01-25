@@ -15,10 +15,8 @@ export default function PropertyCard({ property }) {
         let fileName = img.replace('uploads/images/', '').replace('uploads\\images\\', '');
 
         // Usar la URL de la API configurada (Ngrok) en lugar de localhost
-        const baseUrl = 'https://theodore-unhasted-erlene.ngrok-free.dev/api';
-        const rootUrl = baseUrl.replace('/api', '');
-
-        return `${rootUrl}/api/images/${fileName}`;
+        // Usar PROXY para evitar warnings de ngrok
+        return `/api/proxy-image?filename=${encodeURIComponent(fileName)}`;
     };
 
     let statusText = property.status || 'Disponible';

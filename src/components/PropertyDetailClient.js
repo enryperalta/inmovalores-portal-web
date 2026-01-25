@@ -17,9 +17,9 @@ export default function PropertyDetailClient({ property, agent }) {
         if (!img) return 'https://via.placeholder.com/800x600?text=Sin+Imagen';
         if (img.startsWith('http')) return img;
         let fileName = img.replace('uploads/images/', '').replace('uploads\\images\\', '');
-        const baseUrl = 'https://theodore-unhasted-erlene.ngrok-free.dev/api';
-        const rootUrl = baseUrl.replace('/api', '');
-        return `${rootUrl}/api/images/${fileName}`;
+
+        // Usar nuestro PROXY local para saltar bloqueo de Ngrok
+        return `/api/proxy-image?filename=${encodeURIComponent(fileName)}`;
     };
 
     const whatsappUrl = `https://wa.me/${agent.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`¡Hola! Me interesa la propiedad: ${property.title} (ID: ${property.unique_id})`)}`;
