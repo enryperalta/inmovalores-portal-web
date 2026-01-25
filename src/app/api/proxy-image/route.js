@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
-    const searchParams = request.nextUrl.searchParams;
+    const { searchParams } = new URL(request.url);
     const filename = searchParams.get('filename');
 
     if (!filename) {
@@ -29,10 +29,12 @@ export async function GET(request) {
 
         const blob = await response.blob();
 
-        // Retornar la imagen al navegador
+        // Retornar la imagen SIN CACHÉ para evitar contaminación cruzada
         const headers = new Headers();
         headers.set('Content-Type', response.headers.get('Content-Type') || 'image/jpeg');
-        headers.set('Cache-Control', 'public, max-age=3600'); // Cachear por 1 hora
+        headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        headers.set('Pragma', 'no-cache');
+        headers.set('Expires', '0');
 
         return new NextResponse(blob, { headers });
     } catch (error) {
