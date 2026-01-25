@@ -3,23 +3,24 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const filename = searchParams.get('filename');
 
     if (!filename) {
         return new NextResponse('Filename missing', { status: 400 });
     }
 
-    // URL de Ngrok Hardcodeada (la misma que usamos en api.js)
+    // URL de Ngrok Hardcodeada
     const NGROK_URL = 'https://theodore-unhasted-erlene.ngrok-free.dev';
     const targetUrl = `${NGROK_URL}/api/images/${filename}`;
 
     try {
-        // Fetch a Ngrok CON el header mágico para saltar la advertencia
+        // Fetch a Ngrok SIN caché interna y con header
         const response = await fetch(targetUrl, {
             headers: {
                 'ngrok-skip-browser-warning': 'true',
             },
+            cache: 'no-store' // Asegurar que siempre pida la nueva imagen
         });
 
         if (!response.ok) {
