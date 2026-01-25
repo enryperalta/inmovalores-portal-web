@@ -25,6 +25,20 @@ export async function getProperty(id) {
     return res.json();
 }
 
+export async function getPropertyBySlug(slug) {
+    const res = await fetch(`${API_BASE_URL}/properties/by-slug/${slug}`, {
+        next: { revalidate: 3600, tags: ['properties', `property-slug-${slug}`] },
+        headers: {
+            "ngrok-skip-browser-warning": "true"
+        }
+    });
+    if (!res.ok) {
+        if (res.status === 404) return null;
+        throw new Error('Failed to fetch property by slug');
+    }
+    return res.json();
+}
+
 export async function getPropertyAssignment(id) {
     try {
         const res = await fetch(`${API_BASE_URL}/properties/${id}/assignment`, {
