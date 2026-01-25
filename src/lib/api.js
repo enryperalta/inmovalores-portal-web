@@ -2,7 +2,7 @@ const API_BASE_URL = 'https://theodore-unhasted-erlene.ngrok-free.dev/api';
 
 export async function getProperties() {
     const res = await fetch(`${API_BASE_URL}/properties`, {
-        next: { revalidate: 60 },
+        next: { revalidate: 60, tags: ['properties'] },
         headers: {
             "ngrok-skip-browser-warning": "true"
         }
@@ -13,7 +13,7 @@ export async function getProperties() {
 
 export async function getProperty(id) {
     const res = await fetch(`${API_BASE_URL}/properties/${id}`, {
-        next: { revalidate: 3600 },
+        next: { revalidate: 3600, tags: [`property-${id}`, 'properties'] },
         headers: {
             "ngrok-skip-browser-warning": "true"
         }

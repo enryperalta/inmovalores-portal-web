@@ -1,4 +1,4 @@
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
@@ -30,21 +30,24 @@ export async function POST(request) {
 
         // Revalidar según el tipo de acción
         if (type === 'property') {
-            // Revalidar lista de propiedades (home y página de propiedades)
+            // Revalidar lista de propiedades
+            revalidateTag('properties');
             revalidatePath('/');
             revalidatePath('/properties');
 
-            console.log('✅ Revalidated: / and /properties');
+            console.log('✅ Revalidated tag: properties');
 
-            // Si se proporciona path específico (ej: /properties/123)
+            // Si se proporciona path específico (que contiene el ID implícitamente si extraemos lógica, pero path es más seguro para start)
+            // Ideally el backend debería mandar ID para usar tag property-ID
             if (path) {
                 revalidatePath(path);
-                console.log(`✅ Revalidated: ${path}`);
+                console.log(`✅ Revalidated path: ${path}`);
             }
         } else if (type === 'all') {
-            // Revalidar todo el sitio (usar con precaución)
+            // Revalidar TODO el sitio usando Tags y Layout
+            revalidateTag('properties'); // Borra caché de fetch de todas las propiedades
             revalidatePath('/', 'layout');
-            console.log('✅ Revalidated entire site');
+            console.log('✅ Revalidated tag: properties & layout');
         } else if (path) {
             // Revalidar path específico
             revalidatePath(path);
