@@ -7,12 +7,17 @@ export async function GET(request) {
     const filename = searchParams.get('filename');
 
     if (!filename) {
-        return new NextResponse('Filename missing', { status: 400 });
+        return new NextResponse('Filename required', { status: 400 });
     }
 
-    // URL de Ngrok Hardcodeada
-    const NGROK_URL = 'https://theodore-unhasted-erlene.ngrok-free.dev';
-    const targetUrl = `${NGROK_URL}/api/images/${filename}`;
+    // Optimización: En desarrollo local, usar localhost directo
+    // En producción (Netlify), usar Ngrok
+    const isDev = process.env.NODE_ENV === 'development';
+    const baseUrl = isDev
+        ? 'http://127.0.0.1:8000'
+        : 'https://theodore-unhasted-erlene.ngrok-free.dev';
+
+    const targetUrl = `${baseUrl}/api/images/${filename}`;
 
     try {
         // Fetch a Ngrok SIN caché interna y con header
