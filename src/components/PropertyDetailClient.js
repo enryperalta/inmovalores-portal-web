@@ -120,21 +120,13 @@ export default function PropertyDetailClient({ property, agent }) {
 
                         {/* Tabs Navigation */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-8 min-h-[400px]">
-                            <div className="flex flex-wrap gap-2.5">
-                                {[
-                                    { id: 'descripcion', label: 'Descripción' },
-                                    { id: 'direccion', label: 'Dirección de la Propiedad' },
-                                    { id: 'detalles', label: 'Detalles de la propiedad' },
-                                    { id: 'servicios', label: 'Servicios y Características' }
-                                ].map((tab) => (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => setActiveTab(tab.id)}
-                                        className={`px-5 py-2.5 text-[13px] font-bold rounded-lg transition-all ${activeTab === tab.id ? 'bg-[#137fec] text-white shadow-lg shadow-[#137fec]/20' : 'bg-[#f0f4f8] text-[#137fec] hover:bg-[#e2e8f0]'}`}
-                                    >
-                                        {tab.label}
-                                    </button>
-                                ))}
+                            <div className="flex flex-wrap gap-2 mb-8 border-b border-gray-100 pb-2">
+                                <button onClick={() => setActiveTab('descripcion')} className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-t-lg transition-all ${activeTab === 'descripcion' ? 'bg-[#137fec] text-white shadow-lg' : 'text-gray-400 hover:text-[#137fec]'}`}>Descripción</button>
+                                <button onClick={() => setActiveTab('direccion')} className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-t-lg transition-all ${activeTab === 'direccion' ? 'bg-[#137fec] text-white shadow-lg' : 'text-gray-400 hover:text-[#137fec]'}`}>Ubicación</button>
+                                <button onClick={() => setActiveTab('detalles')} className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-t-lg transition-all ${activeTab === 'detalles' ? 'bg-[#137fec] text-white shadow-lg' : 'text-gray-400 hover:text-[#137fec]'}`}>Detalles</button>
+                                {property.amenities && (
+                                    <button onClick={() => setActiveTab('servicios')} className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-t-lg transition-all ${activeTab === 'servicios' ? 'bg-[#137fec] text-white shadow-lg' : 'text-gray-400 hover:text-[#137fec]'}`}>Servicios</button>
+                                )}
                             </div>
 
                             <div className="py-2">
@@ -169,10 +161,17 @@ export default function PropertyDetailClient({ property, agent }) {
                                 )}
                                 {activeTab === 'servicios' && (
                                     <div className="animate-fade-in space-y-2 text-sm text-[#1A1A1A] font-medium">
-                                        {property.bedrooms > 0 && <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-[#137fec] rounded-full"></span> {property.bedrooms} dormitorios</p>}
-                                        {(parseFloat(property.bathrooms) > 0) && <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-[#137fec] rounded-full"></span> {property.bathrooms} baños</p>}
-                                        {property.parking > 0 && <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-[#137fec] rounded-full"></span> {property.parking} parqueos</p>}
-                                        {property.area > 0 && <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-[#137fec] rounded-full"></span> {property.area} m² construcción</p>}
+                                        {/* Amenidades de la base de datos exclusivamente */}
+                                        {property.amenities && property.amenities.split(/[,\n\r]+/).map((amenity, idx) => {
+                                            const trimmed = amenity.trim();
+                                            if (!trimmed) return null;
+                                            return (
+                                                <p key={`am-${idx}`} className="flex items-center gap-2">
+                                                    <span className="w-1.5 h-1.5 bg-[#137fec] rounded-full"></span>
+                                                    {trimmed}
+                                                </p>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
