@@ -56,9 +56,9 @@ export default function PropertyDetailClient({ property, agent }) {
                             <span className="text-gray-300">•</span>
                             <span className="uppercase">{property.status}</span>
                             <span className="text-gray-300">•</span>
-                            <span>{property.address}, {property.municipality}</span>
+                            <span>{property.address}{property.municipality ? `, ${property.municipality}` : ''}</span>
                             <span className="text-gray-300">•</span>
-                            <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded">ID: {property.unique_id}</span>
+                            <span>ID: {property.unique_id}</span>
                         </div>
                     </div>
                     <div className="lg:text-right">
