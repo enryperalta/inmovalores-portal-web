@@ -184,7 +184,7 @@ export default function PropertyDetailClient({ property, agent }) {
                         <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
                             <div className="p-8 pb-4 text-center border-b border-gray-50 bg-[#f8fafc]">
                                 <div className="w-full aspect-[4/3] mb-4 overflow-hidden rounded-xl bg-white border border-gray-100 flex items-center justify-center p-4 shadow-inner">
-                                    <img src={getImageUrl('logo_redondo_inmovalores2.webp')} className="w-full h-full object-contain" alt="Inmovalores Logo" />
+                                    <img src={getImageUrl('logo_inmovalores_header.png')} className="w-full h-full object-contain" alt="Inmovalores Logo" />
                                 </div>
                             </div>
                             <div className="p-6 space-y-6 text-sm">

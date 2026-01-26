@@ -19,7 +19,7 @@ const getImageUrl = (path) => {
 }
 
 export default function RootLayout({ children }) {
-  const logoUrl = getImageUrl('logo_redondo_inmovalores.png');
+  const logoUrl = getImageUrl('logo_inmovalores_header.png');
   return (
     <html lang="es" className="light">
       <head>
