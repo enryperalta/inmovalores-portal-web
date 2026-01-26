@@ -2,31 +2,50 @@ import { getPropertyBySlug, getPropertyAssignment } from '@/lib/api';
 import PropertyDetailClient from '@/components/PropertyDetailClient';
 import Link from 'next/link';
 
-// Server Component para URLs Legacy (property-xxxx.html)
-export const dynamic = 'force-dynamic';
+// Configuración ISR (Incremental Static Regeneration)
+// Revalidar cada 1 hora (3600 segundos) para mantener buen performance y datos frescos
+export const revalidate = 3600;
 
-export default async function LegacyPropertyPage({ params }) {
-    // El slug viene del rewrite en next.config.mjs (ej: "property-pro-2026-043")
-    // Pero como el rewrite captura todo antes de .html, puede ser "pro-2026-043" si el rewrite lo limpia
-    // En nuestro caso, el rewrite es destination: '/legacy/:slug*'
-    // Y el source es `/:slug*.html`.
-    // Si la URL es `/property-pro-123.html`, slug será `['property-pro-123']` (array) o string?
-    // En [...slug] sería array. En [slug] simple, el rewrite puede ser tricky con paths complejos.
-    // Asumiremos que nos llega la parte antes de .html
-
-    // IMPORTANTE: Next.js 15 params es async
+// Generar Metadata para SEO y Facebook (OpenGraph)
+export async function generateMetadata({ params }) {
     const resolvedParams = await params;
-    // Si capture es wildcard :slug*, esto devuelve un array. Vamos a unirlo.
-    // Si definimos la carpeta como [slug] simple, solo captura un segmento.
-    // Si definimos [...slug], captura varios. Mejor usar [...slug] por seguridad si hay slashes,
-    // pero las URLs legacy suelen ser planas.
-    // Dado que crearemos la carpeta como [slug], asumimos string simple.
-
     let slug = resolvedParams.slug;
     if (Array.isArray(slug)) slug = slug.join('/');
 
     try {
-        // 1. Buscar propiedad por slug
+        const property = await getPropertyBySlug(slug);
+        if (!property) return { title: 'Propiedad no encontrada | Inmovalores' };
+
+        const title = `${property.title} | Inmovalores`;
+        const description = property.description ? property.description.substring(0, 160) : 'Propiedad en venta/renta con Inmovalores.';
+        const images = property.images && property.images.length > 0
+            ? [property.images[0].startsWith('http') ? property.images[0] : `https://inmovalores.com${property.images[0]}`]
+            : [];
+
+        return {
+            title: title,
+            description: description,
+            openGraph: {
+                title: title,
+                description: description,
+                images: images,
+                url: `https://inmovalores.com/property-${property.unique_id?.toLowerCase() || slug}.html`,
+                type: 'website',
+            },
+        };
+    } catch (error) {
+        return { title: 'Inmovalores' };
+    }
+}
+
+export default async function LegacyPropertyPage({ params }) {
+    // IMPORTANTE: Next.js 15 params es async
+    const resolvedParams = await params;
+    let slug = resolvedParams.slug;
+    if (Array.isArray(slug)) slug = slug.join('/');
+
+    try {
+        // 1. Buscar propiedad por slug (esto llamará al backend que limpia property- y .html)
         const property = await getPropertyBySlug(slug);
 
         if (!property) {
