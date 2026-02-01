@@ -13,19 +13,18 @@ export async function GET(request) {
     // Optimización: En desarrollo local, usar localhost directo
     // En producción (Netlify), usar Ngrok
     const isDev = process.env.NODE_ENV === 'development';
-    const baseUrl = isDev
-        ? 'http://127.0.0.1:8000'
-        : 'https://theodore-unhasted-erlene.ngrok-free.dev';
+    // Obtener la URL base desde las variables de entorno para evitar hardcoding
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    const baseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
 
     const targetUrl = `${baseUrl}/api/images/${filename}`;
 
     try {
-        // Fetch a Ngrok SIN caché interna y con header
+        // Fetch a la imagen con el header de skip de ngrok
         const response = await fetch(targetUrl, {
             headers: {
                 'ngrok-skip-browser-warning': 'true',
             },
-            cache: 'no-store' // Asegurar que siempre pida la nueva imagen
         });
 
         if (!response.ok) {
@@ -34,12 +33,12 @@ export async function GET(request) {
 
         const blob = await response.blob();
 
-        // Retornar la imagen SIN CACHÉ para evitar contaminación cruzada
+        // 🚀 MEJORA: Añadir headers de CACHÉ AGRESIVA para que las imágenes "permanezcan"
+        // incluso si el túnel se cierra después de la primera carga.
         const headers = new Headers();
         headers.set('Content-Type', response.headers.get('Content-Type') || 'image/jpeg');
-        headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        headers.set('Pragma', 'no-cache');
-        headers.set('Expires', '0');
+        headers.set('Cache-Control', 'public, max-age=31536000, immutable'); // 1 año de caché
+        headers.set('Vary', 'Accept');
 
         return new NextResponse(blob, { headers });
     } catch (error) {

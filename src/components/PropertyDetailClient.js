@@ -2,12 +2,46 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { createLead } from '@/lib/api';
 
 export default function PropertyDetailClient({ property, agent }) {
     const [activeImage, setActiveImage] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalIndex, setModalIndex] = useState(0);
     const [activeTab, setActiveTab] = useState('descripcion');
+
+    // Form state
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        message: ''
+    });
+    const [status, setStatus] = useState({ loading: false, success: false, error: null });
+
+    const handleFormChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        setStatus({ loading: true, success: false, error: null });
+
+        try {
+            await createLead({
+                ...formData,
+                property_id: property.unique_id,
+                property_title: property.title
+            });
+            setStatus({ loading: false, success: true, error: null });
+            setFormData({ name: '', email: '', phone: '', message: '' });
+            setTimeout(() => setStatus(prev => ({ ...prev, success: false })), 5000);
+        } catch (err) {
+            console.error("Error submitting lead:", err);
+            setStatus({ loading: false, success: false, error: err.message });
+        }
+    };
 
     // Parse images safely
     const images = property.images ? (typeof property.images === 'string' ? JSON.parse(property.images) : property.images) : [];
@@ -208,21 +242,62 @@ export default function PropertyDetailClient({ property, agent }) {
 
                         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 space-y-6">
                             <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Contactar</h4>
-                            <form className="space-y-4">
-                                <div>
-                                    <input type="text" placeholder="Tu Nombre" className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3.5 placeholder:text-gray-400 text-sm focus:bg-white focus:border-[#137fec] focus:ring-1 focus:ring-[#137fec] outline-none transition-all" />
+                            <form className="space-y-4" onSubmit={handleFormSubmit}>
+                                <div className="space-y-4">
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        placeholder="Tu Nombre"
+                                        value={formData.name}
+                                        onChange={handleFormChange}
+                                        required
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3.5 placeholder:text-gray-400 text-sm focus:bg-white focus:border-[#137fec] focus:ring-1 focus:ring-[#137fec] outline-none transition-all"
+                                    />
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        placeholder="Tu correo"
+                                        value={formData.email}
+                                        onChange={handleFormChange}
+                                        required
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3.5 placeholder:text-gray-400 text-sm focus:bg-white focus:border-[#137fec] focus:ring-1 focus:ring-[#137fec] outline-none transition-all"
+                                    />
+                                    <input
+                                        type="text"
+                                        name="phone"
+                                        placeholder="Teléfono"
+                                        value={formData.phone}
+                                        onChange={handleFormChange}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3.5 placeholder:text-gray-400 text-sm focus:bg-white focus:border-[#137fec] focus:ring-1 focus:ring-[#137fec] outline-none transition-all"
+                                    />
+                                    <textarea
+                                        name="message"
+                                        rows="4"
+                                        placeholder="Tu Mensaje"
+                                        value={formData.message}
+                                        onChange={handleFormChange}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3.5 placeholder:text-gray-400 text-sm focus:bg-white focus:border-[#137fec] focus:ring-1 focus:ring-[#137fec] outline-none resize-none transition-all"
+                                    ></textarea>
                                 </div>
-                                <div>
-                                    <input type="email" placeholder="Tu correo" className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3.5 placeholder:text-gray-400 text-sm focus:bg-white focus:border-[#137fec] focus:ring-1 focus:ring-[#137fec] outline-none transition-all" />
-                                </div>
-                                <div>
-                                    <input type="text" placeholder="Teléfono" className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3.5 placeholder:text-gray-400 text-sm focus:bg-white focus:border-[#137fec] focus:ring-1 focus:ring-[#137fec] outline-none transition-all" />
-                                </div>
-                                <div>
-                                    <textarea rows="4" placeholder="Tu Mensaje" className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3.5 placeholder:text-gray-400 text-sm focus:bg-white focus:border-[#137fec] focus:ring-1 focus:ring-[#137fec] outline-none resize-none transition-all"></textarea>
-                                </div>
-                                <button className="w-full py-4.5 bg-[#137fec] text-white rounded-lg font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-[#137fec]/30 hover:bg-[#137fec]/90 transition-all transform hover:scale-[1.01] active:scale-95">
-                                    ENVIAR MENSAJE
+
+                                {status.error && (
+                                    <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100 animate-pulse">
+                                        {status.error}
+                                    </div>
+                                )}
+
+                                {status.success && (
+                                    <div className="p-3 bg-green-50 text-green-600 text-xs font-bold rounded-lg border border-green-100">
+                                        ¡Mensaje enviado correctamente!
+                                    </div>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    disabled={status.loading}
+                                    className="w-full py-4.5 bg-[#137fec] text-white rounded-lg font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-[#137fec]/30 hover:bg-[#137fec]/90 transition-all transform hover:scale-[1.01] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                >
+                                    {status.loading ? 'ENVIANDO...' : 'ENVIAR MENSAJE'}
                                 </button>
                             </form>
                         </div>

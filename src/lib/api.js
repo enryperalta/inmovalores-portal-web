@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://theodore-unhasted-erlene.ngrok-free.dev/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 export async function getProperties() {
     const res = await fetch(`${API_BASE_URL}/properties`, {
@@ -53,4 +53,20 @@ export async function getPropertyAssignment(id) {
         console.error("Error fetching assignment:", e);
         return { assigned: false };
     }
+}
+
+export async function createLead(leadData) {
+    const res = await fetch(`${API_BASE_URL}/leads`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            "ngrok-skip-browser-warning": "true"
+        },
+        body: JSON.stringify(leadData)
+    });
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.detail || 'Error al enviar el formulario');
+    }
+    return res.json();
 }
