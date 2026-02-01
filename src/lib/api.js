@@ -56,7 +56,7 @@ export async function getPropertyAssignment(id) {
 }
 
 export async function createLead(leadData) {
-    const res = await fetch(`${API_BASE_URL}/leads`, {
+    const res = await fetch(`${API_BASE_URL}/contacts/leads`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

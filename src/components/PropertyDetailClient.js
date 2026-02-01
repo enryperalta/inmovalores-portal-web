@@ -19,6 +19,16 @@ export default function PropertyDetailClient({ property, agent }) {
     });
     const [status, setStatus] = useState({ loading: false, success: false, error: null });
 
+    // Update message when property changes
+    useEffect(() => {
+        if (property) {
+            setFormData(prev => ({
+                ...prev,
+                message: `Hola! quisiera mas informacion de la propiedad ${property.title} ID ${property.unique_id}`
+            }));
+        }
+    }, [property]);
+
     const handleFormChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
