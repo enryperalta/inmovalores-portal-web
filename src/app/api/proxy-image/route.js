@@ -32,13 +32,14 @@ export async function GET(request) {
         }
 
         const blob = await response.blob();
+        console.log(`✅ Image fetched: ${filename} from ${targetUrl}`);
 
-        // 🚀 MEJORA: Añadir headers de CACHÉ AGRESIVA para que las imágenes "permanezcan"
-        // incluso si el túnel se cierra después de la primera carga.
+        // Retornar la imagen CON CACHÉ estándar (no inmutable por ahora para evitar bugs)
         const headers = new Headers();
         headers.set('Content-Type', response.headers.get('Content-Type') || 'image/jpeg');
-        headers.set('Cache-Control', 'public, max-age=31536000, immutable'); // 1 año de caché
-        headers.set('Vary', 'Accept');
+        headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+        headers.set('Pragma', 'no-cache');
+        headers.set('Expires', '0');
 
         return new NextResponse(blob, { headers });
     } catch (error) {
