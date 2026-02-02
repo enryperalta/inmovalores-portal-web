@@ -12,9 +12,10 @@ export async function GET(request) {
     const baseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
     const targetUrl = `${baseUrl}/api/images/${filename}`;
 
-    // 1. Capturar el sello del navegador (Headers estándar y el secreto)
+    // 1. Capturar el sello del navegador (Headers estándar y el secreto de blindaje)
     const browserEtag = request.headers.get('if-none-match') ||
         request.headers.get('If-None-Match') ||
+        request.headers.get('x-inmo-version') ||
         request.headers.get('x-inmo-cache');
 
     try {
@@ -23,10 +24,11 @@ export async function GET(request) {
             'Accept': 'image/*, */*',
         };
 
-        // 2. Pasar ambos sellos al Backend por si acaso
+        // 2. Pasar el sello al Backend usando el canal de blindaje
         if (browserEtag) {
-            fetchHeaders['If-None-Match'] = browserEtag;
-            fetchHeaders['X-Inmo-Cache'] = browserEtag;
+            const cleanTag = browserEtag.replace(/"/g, '').replace('W/', '').trim();
+            fetchHeaders['If-None-Match'] = `"${cleanTag}"`;
+            fetchHeaders['X-Inmo-Version'] = cleanTag;
         }
 
         const response = await fetch(targetUrl, {
@@ -41,7 +43,7 @@ export async function GET(request) {
                 headers: {
                     'Cache-Control': 'public, max-age=2592000, immutable',
                     'ETag': browserEtag,
-                    'X-Inmo-Cache': browserEtag
+                    'X-Inmo-Version': browserEtag
                 }
             });
         }
@@ -52,15 +54,16 @@ export async function GET(request) {
 
         const blob = await response.blob();
 
-        // 4. Retornar con ambos sellos
+        // 4. Retornar con ambos sellos para asegurar el próximo ciclo
         const finalHeaders = new Headers();
         finalHeaders.set('Content-Type', response.headers.get('Content-Type') || 'image/jpeg');
         finalHeaders.set('Cache-Control', 'public, max-age=2592000, immutable');
 
-        const backendEtag = response.headers.get('ETag') || response.headers.get('x-inmo-cache');
+        const backendEtag = response.headers.get('ETag') || response.headers.get('x-inmo-version');
         if (backendEtag) {
-            finalHeaders.set('ETag', backendEtag);
-            finalHeaders.set('X-Inmo-Cache', backendEtag);
+            const cleanBackendTag = backendEtag.replace(/"/g, '').replace('W/', '').trim();
+            finalHeaders.set('ETag', `"${cleanBackendTag}"`);
+            finalHeaders.set('X-Inmo-Version', cleanBackendTag);
         }
 
         return new NextResponse(blob, { headers: finalHeaders });
