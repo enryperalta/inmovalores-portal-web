@@ -32,14 +32,16 @@ export async function GET(request) {
         }
 
         const blob = await response.blob();
-        console.log(`✅ Image fetched: ${filename} from ${targetUrl}`);
 
-        // Retornar la imagen CON CACHÉ estándar (no inmutable por ahora para evitar bugs)
+        // Propagar ETags y Cache-Control del backend al navegador
         const headers = new Headers();
         headers.set('Content-Type', response.headers.get('Content-Type') || 'image/jpeg');
-        headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-        headers.set('Pragma', 'no-cache');
-        headers.set('Expires', '0');
+        headers.set('Cache-Control', 'public, max-age=2592000, immutable');
+
+        const backendEtag = response.headers.get('ETag');
+        if (backendEtag) {
+            headers.set('ETag', backendEtag);
+        }
 
         return new NextResponse(blob, { headers });
     } catch (error) {
