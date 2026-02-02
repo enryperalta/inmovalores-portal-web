@@ -12,27 +12,28 @@ export async function GET(request) {
     const baseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
     const targetUrl = `${baseUrl}/api/images/${filename}`;
 
-    // 1. Obtener el ETag que el navegador YA tiene guardado
-    const browserEtag = request.headers.get('if-none-match');
-    console.log(`[PROXY DEBUG] Filename: ${filename} | Browser ETag: ${browserEtag}`);
+    // 1. Capturar el sello del navegador (If-None-Match)
+    const browserEtag = request.headers.get('if-none-match') || request.headers.get('If-None-Match');
 
     try {
         const fetchHeaders = {
             'ngrok-skip-browser-warning': 'true',
+            'Accept': 'image/*, */*',
         };
 
-        // 2. Preguntarle al backend: "¿Ha cambiado esta foto desde mi versión?"
+        // 2. Re-inyectar el sello para el Backend
         if (browserEtag) {
-            fetchHeaders['if-none-match'] = browserEtag;
+            fetchHeaders['If-None-Match'] = browserEtag;
         }
 
+        // IMPORTANTE: 'cache: no-store' aquí le dice a Netlify que NO guarde nada él mismo,
+        // lo que obliga a que pase la petición al backend para validar el ETag.
         const response = await fetch(targetUrl, {
             headers: fetchHeaders,
-            // Permitir que Next.js cachee esta petición en su propia red (Edge Cache)
-            next: { revalidate: 3600 }
+            cache: 'no-store'
         });
 
-        // 3. Si el backend responde 304 (No ha cambiado), le decimos lo mismo al navegador
+        // 3. Manejar la validación exitosa (304)
         if (response.status === 304) {
             return new NextResponse(null, {
                 status: 304,
@@ -49,17 +50,17 @@ export async function GET(request) {
 
         const blob = await response.blob();
 
-        // 4. Si la foto es nueva o cambió, enviarla con cacheo agresivo
-        const headers = new Headers();
-        headers.set('Content-Type', response.headers.get('Content-Type') || 'image/jpeg');
-        headers.set('Cache-Control', 'public, max-age=2592000, immutable');
+        // 4. Retornar con sello fuerte para la próxima vez
+        const finalHeaders = new Headers();
+        finalHeaders.set('Content-Type', response.headers.get('Content-Type') || 'image/jpeg');
+        finalHeaders.set('Cache-Control', 'public, max-age=2592000, immutable');
 
         const backendEtag = response.headers.get('ETag');
         if (backendEtag) {
-            headers.set('ETag', backendEtag);
+            finalHeaders.set('ETag', backendEtag);
         }
 
-        return new NextResponse(blob, { headers });
+        return new NextResponse(blob, { headers: finalHeaders });
     } catch (error) {
         console.error('Proxy image error:', error);
         return new NextResponse('Internal Server Error', { status: 500 });
