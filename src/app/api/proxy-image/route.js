@@ -14,6 +14,7 @@ export async function GET(request) {
 
     // 1. Obtener el ETag que el navegador YA tiene guardado
     const browserEtag = request.headers.get('if-none-match');
+    console.log(`[PROXY DEBUG] Filename: ${filename} | Browser ETag: ${browserEtag}`);
 
     try {
         const fetchHeaders = {
