@@ -1,65 +1,16 @@
 import { getProperties } from '@/lib/api';
-import PropertyCard from '@/components/PropertyCard';
 import SearchBar from '@/components/SearchBar';
+import FilteredPropertyGrid from '@/components/FilteredPropertyGrid';
+import { Suspense } from 'react';
 
 // Revalidación: Solo on-demand (cuando el backend notifique cambios)
-// El backend llamará a /api/revalidate cuando se cree/edite/elimine una propiedad
-export const revalidate = false; // Desactivar revalidación automática
+export const revalidate = false;
 
-export default async function Home({ searchParams }) {
+export default async function Home() {
+  // 1. Obtener todas las propiedades (esto se cachea en Netlify)
   const properties = await getProperties();
 
-  // Destructure search params (await for Next.js 15 consistency)
-  const params = await searchParams;
-  const { l, type, t } = params;
-
-  console.log('Search Params Received:', { l, type, t });
-  console.log('Total Properties before filter:', properties.length);
-
-  // Filtering logic
-  let filteredProperties = properties.filter(p => {
-    const status = (p.status || '').toLowerCase().trim();
-    const pType = (p.type || '').toLowerCase().trim();
-    const pLoc = (p.municipality || '').toLowerCase().trim();
-
-    // 1. EXCLUDE specific statuses
-    if (status === 'pendiente' ||
-      status === 'vendida' ||
-      status === 'vendido' ||
-      status.includes('requerimiento')) {
-      return false;
-    }
-
-    // 2. Transaction Filter (t)
-    if (t) {
-      const tLower = t.toLowerCase().trim();
-      if (tLower === 'venta') {
-        if (!(status.includes('venta') || status.includes('sale'))) return false;
-      } else if (tLower === 'alquiler') {
-        if (!(status.includes('alquiler') || status.includes('rent'))) return false;
-      }
-    }
-
-    // 3. Location Filter (l)
-    if (l) {
-      const pMunicipality = (p.municipality || '').toLowerCase().trim();
-      const searchLoc = decodeURIComponent(l).toLowerCase().trim();
-      if (pMunicipality !== searchLoc) return false;
-    }
-
-    // 4. Type Filter (type)
-    if (type) {
-      const pTypeClean = (p.type || '').toLowerCase().trim();
-      const searchType = decodeURIComponent(type).toLowerCase().trim();
-      if (pTypeClean !== searchType) return false;
-    }
-
-    return true;
-  });
-
-  console.log('Total Properties after filter:', filteredProperties.length);
-
-  // Extract unique locations and types for the filter bar
+  // 2. Extraer opciones para los filtros
   const locations = [...new Set(properties.map(p => p.municipality).filter(Boolean))].sort();
   const types = [...new Set(properties.map(p => p.type).filter(Boolean))].sort();
 
@@ -99,17 +50,9 @@ export default async function Home({ searchParams }) {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {filteredProperties.map((property) => (
-              <PropertyCard key={property.id} property={property} />
-            ))}
-          </div>
-
-          {filteredProperties.length === 0 && (
-            <div className="py-32 text-center bg-white rounded-xl shadow-sm border border-gray-100 italic font-medium text-gray-400 text-xl">
-              No se encontraron propiedades que coincidan con los criterios seleccionados.
-            </div>
-          )}
+          <Suspense fallback={<div className="text-center py-20 font-bold text-gray-400">Cargando portafolio...</div>}>
+            <FilteredPropertyGrid initialProperties={properties} />
+          </Suspense>
         </div>
       </section>
     </main>

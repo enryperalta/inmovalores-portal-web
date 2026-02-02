@@ -2,7 +2,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
 
 export async function getProperties() {
     const res = await fetch(`${API_BASE_URL}/properties`, {
-        next: { revalidate: 60, tags: ['properties'] },
+        next: { tags: ['properties'] },
         headers: {
             "ngrok-skip-browser-warning": "true"
         }
@@ -13,7 +13,7 @@ export async function getProperties() {
 
 export async function getProperty(id) {
     const res = await fetch(`${API_BASE_URL}/properties/${id}`, {
-        next: { revalidate: 3600, tags: [`property-${id}`, 'properties'] },
+        next: { tags: [`property-${id}`, 'properties'] },
         headers: {
             "ngrok-skip-browser-warning": "true"
         }
@@ -27,7 +27,7 @@ export async function getProperty(id) {
 
 export async function getPropertyBySlug(slug) {
     const res = await fetch(`${API_BASE_URL}/properties/by-slug/${slug}`, {
-        next: { revalidate: 3600, tags: ['properties', `property-slug-${slug}`] },
+        next: { tags: ['properties', `property-slug-${slug}`] },
         headers: {
             "ngrok-skip-browser-warning": "true"
         }
@@ -42,7 +42,8 @@ export async function getPropertyBySlug(slug) {
 export async function getPropertyAssignment(id) {
     try {
         const res = await fetch(`${API_BASE_URL}/properties/${id}/assignment`, {
-            next: { revalidate: 300 },
+            // Sin revalidate automatico, solo manual o al recargar si no hay caché
+            cache: 'no-store',
             headers: {
                 "ngrok-skip-browser-warning": "true"
             }
