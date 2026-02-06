@@ -12,6 +12,9 @@ export async function GET(request) {
     const baseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
     const targetUrl = `${baseUrl}/api/images/${filename}`;
 
+    // 🕵️ DEBUG: Capturar qué ve Netlify del navegador
+    const incomingHeaders = Array.from(request.headers.keys()).join(', ');
+
     // 1. Capturar el sello del navegador (Headers estándar y el secreto de blindaje)
     const browserEtag = request.headers.get('if-none-match') ||
         request.headers.get('If-None-Match') ||
@@ -43,7 +46,8 @@ export async function GET(request) {
                 headers: {
                     'Cache-Control': 'public, max-age=2592000, immutable',
                     'ETag': browserEtag,
-                    'X-Inmo-Version': browserEtag
+                    'X-Inmo-Version': browserEtag,
+                    'X-Proxy-Debug': `Recibido: ${incomingHeaders}`
                 }
             });
         }
@@ -58,6 +62,7 @@ export async function GET(request) {
         const finalHeaders = new Headers();
         finalHeaders.set('Content-Type', response.headers.get('Content-Type') || 'image/jpeg');
         finalHeaders.set('Cache-Control', 'public, max-age=2592000, immutable');
+        finalHeaders.set('X-Proxy-Debug', `Recibido: ${incomingHeaders}`);
 
         const backendEtag = response.headers.get('ETag') || response.headers.get('x-inmo-version');
         if (backendEtag) {

@@ -36,7 +36,9 @@ export default async function Home() {
             Tu aliado experto para comprar, vender o alquilar. Encontramos la opción perfecta para ti, desde lo más accesible hasta lo más exclusivo.
           </p>
 
-          <SearchBar locations={locations} types={types} />
+          <Suspense fallback={<div className="h-20" />}>
+            <SearchBar locations={locations} types={types} />
+          </Suspense>
         </div>
       </section>
 
