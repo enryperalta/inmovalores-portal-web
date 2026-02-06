@@ -82,8 +82,15 @@ export async function GET(request) {
             finalHeaders.set('X-Inmo-Version', cleanBackendTag);
         }
 
-        // Usar el stream directo para máxima eficiencia y evitar buffers intermedios
-        return new NextResponse(response.body, {
+        const backendEtag = response.headers.get('ETag') || response.headers.get('x-inmo-version');
+        if (backendEtag) {
+            const cleanBackendTag = backendEtag.replace(/"/g, '').replace('W/', '').trim();
+            finalHeaders.set('ETag', `"${cleanBackendTag}"`);
+            finalHeaders.set('X-Inmo-Version', cleanBackendTag);
+        }
+
+        const buffer = await response.arrayBuffer();
+        return new NextResponse(buffer, {
             status: 200,
             headers: finalHeaders
         });

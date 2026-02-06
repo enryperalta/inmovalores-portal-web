@@ -14,9 +14,9 @@ export default function PropertyCard({ property }) {
         // Si la ruta guardada incluye 'uploads/images/', la limpiamos
         let fileName = img.replace('uploads/images/', '').replace('uploads\\images\\', '');
 
-        // Usar la URL de la API configurada (Ngrok) en lugar de localhost
         // Usar PROXY para evitar warnings de ngrok
-        return `/api/proxy-image?filename=${encodeURIComponent(fileName)}`;
+        // Añadimos un cache-buster para forzar a Netlify y al navegador a recargar
+        return `/api/proxy-image?filename=${encodeURIComponent(fileName)}&v=1.2`;
     };
 
     let statusText = property.status || 'Disponible';
