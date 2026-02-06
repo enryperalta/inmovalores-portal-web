@@ -8,7 +8,10 @@ export async function GET(request) {
         return new NextResponse('Filename required', { status: 400 });
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    // Limpiar slash final para evitar errores de URL
+    if (apiUrl.endsWith('/')) apiUrl = apiUrl.slice(0, -1);
+
     const baseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
     const targetUrl = `${baseUrl}/api/images/${filename}`;
 
@@ -47,7 +50,7 @@ export async function GET(request) {
                     'Cache-Control': 'public, max-age=2592000, immutable',
                     'ETag': browserEtag,
                     'X-Inmo-Version': browserEtag,
-                    'X-Proxy-Debug': `Recibido: ${incomingHeaders}`
+                    'X-Proxy-Debug': `304-Recibido: ${incomingHeaders}`
                 }
             });
         }
@@ -56,21 +59,21 @@ export async function GET(request) {
             return new NextResponse('Image not found', { status: response.status });
         }
 
-        const blob = await response.blob();
+        // Determinar el MIME type correcto - Prioridad total a la extensión
+        const lowerFilename = filename.toLowerCase();
+        let contentType = '';
 
-        // Determinar el MIME type correcto
-        let contentType = response.headers.get('Content-Type');
-        if (!contentType || contentType === 'application/octet-stream' || contentType === 'image/jpeg') {
-            if (filename.endsWith('.webp')) contentType = 'image/webp';
-            else if (filename.endsWith('.png')) contentType = 'image/png';
-            else if (filename.endsWith('.jpg') || filename.endsWith('.jpeg')) contentType = 'image/jpeg';
-        }
+        if (lowerFilename.endsWith('.webp')) contentType = 'image/webp';
+        else if (lowerFilename.endsWith('.png')) contentType = 'image/png';
+        else if (lowerFilename.endsWith('.jpg') || lowerFilename.endsWith('.jpeg')) contentType = 'image/jpeg';
+        else if (lowerFilename.endsWith('.gif')) contentType = 'image/gif';
+        else contentType = response.headers.get('Content-Type') || 'image/jpeg';
 
         // 4. Retornar con ambos sellos para asegurar el próximo ciclo
         const finalHeaders = new Headers();
-        finalHeaders.set('Content-Type', contentType || 'image/jpeg');
+        finalHeaders.set('Content-Type', contentType);
         finalHeaders.set('Cache-Control', 'public, max-age=2592000, immutable');
-        finalHeaders.set('X-Proxy-Debug', `Recibido: ${incomingHeaders}`);
+        finalHeaders.set('X-Proxy-Debug', `200-FinalType:${contentType}-OriginalType:${response.headers.get('Content-Type')}`);
 
         const backendEtag = response.headers.get('ETag') || response.headers.get('x-inmo-version');
         if (backendEtag) {
@@ -79,7 +82,11 @@ export async function GET(request) {
             finalHeaders.set('X-Inmo-Version', cleanBackendTag);
         }
 
-        return new NextResponse(blob, { headers: finalHeaders });
+        // Usar el stream directo para máxima eficiencia y evitar buffers intermedios
+        return new NextResponse(response.body, {
+            status: 200,
+            headers: finalHeaders
+        });
     } catch (error) {
         console.error('Proxy image error:', error);
         return new NextResponse('Internal Server Error', { status: 500 });

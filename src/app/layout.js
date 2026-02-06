@@ -12,7 +12,6 @@ export const metadata = {
   description: "Encuentra la propiedad ideal en Guatemala con Inmovalores.",
 };
 
-const API_URL = 'https://theodore-unhasted-erlene.ngrok-free.dev/api';
 // Helper para limpiar la url base si ya tiene /api
 const getImageUrl = (path) => {
   return `/api/proxy-image?filename=${encodeURIComponent(path)}`;
