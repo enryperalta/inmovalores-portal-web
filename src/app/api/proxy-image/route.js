@@ -82,13 +82,6 @@ export async function GET(request) {
             finalHeaders.set('X-Inmo-Version', cleanBackendTag);
         }
 
-        const backendEtag = response.headers.get('ETag') || response.headers.get('x-inmo-version');
-        if (backendEtag) {
-            const cleanBackendTag = backendEtag.replace(/"/g, '').replace('W/', '').trim();
-            finalHeaders.set('ETag', `"${cleanBackendTag}"`);
-            finalHeaders.set('X-Inmo-Version', cleanBackendTag);
-        }
-
         const buffer = await response.arrayBuffer();
         return new NextResponse(buffer, {
             status: 200,
