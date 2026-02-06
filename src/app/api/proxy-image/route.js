@@ -58,9 +58,17 @@ export async function GET(request) {
 
         const blob = await response.blob();
 
+        // Determinar el MIME type correcto
+        let contentType = response.headers.get('Content-Type');
+        if (!contentType || contentType === 'application/octet-stream' || contentType === 'image/jpeg') {
+            if (filename.endsWith('.webp')) contentType = 'image/webp';
+            else if (filename.endsWith('.png')) contentType = 'image/png';
+            else if (filename.endsWith('.jpg') || filename.endsWith('.jpeg')) contentType = 'image/jpeg';
+        }
+
         // 4. Retornar con ambos sellos para asegurar el próximo ciclo
         const finalHeaders = new Headers();
-        finalHeaders.set('Content-Type', response.headers.get('Content-Type') || 'image/jpeg');
+        finalHeaders.set('Content-Type', contentType || 'image/jpeg');
         finalHeaders.set('Cache-Control', 'public, max-age=2592000, immutable');
         finalHeaders.set('X-Proxy-Debug', `Recibido: ${incomingHeaders}`);
 
