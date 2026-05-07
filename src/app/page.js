@@ -7,8 +7,12 @@ import { Suspense } from 'react';
 export const revalidate = false;
 
 export default async function Home() {
-  // 1. Obtener todas las propiedades (esto se cachea en Netlify)
-  const properties = await getProperties();
+  // 1. Obtener propiedades (esto se cachea en Netlify/Next.js)
+  const allProperties = await getProperties();
+  
+  // 2. Filtrado estricto por Agencia 2 (Inmovalores)
+  // Fail-safe por si el backend o el cache traen datos de otras agencias
+  const properties = allProperties.filter(p => !p.agency_id || p.agency_id === 2);
 
   // 2. Extraer opciones para los filtros
   const locations = [...new Set(properties.map(p => p.municipality).filter(Boolean))].sort();

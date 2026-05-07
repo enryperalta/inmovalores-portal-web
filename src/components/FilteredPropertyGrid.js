@@ -26,6 +26,11 @@ export default function FilteredPropertyGrid({ initialProperties }) {
                 return false;
             }
 
+            // 1.5 Fail-safe: Solo agencia 2 (Inmovalores)
+            if (p.agency_id && p.agency_id !== 2) {
+                return false;
+            }
+
             // 2. Filtro de Transacción (Comprar/Alquilar)
             if (t) {
                 const tLower = t.toLowerCase().trim();
