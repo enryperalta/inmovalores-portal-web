@@ -3,11 +3,13 @@ import SearchBar from '@/components/SearchBar';
 import FilteredPropertyGrid from '@/components/FilteredPropertyGrid';
 import { Suspense } from 'react';
 
-// Revalidación: Solo on-demand (cuando el backend notifique cambios)
-export const revalidate = false;
+// Renderizado dinamico en cada peticion — evita HTML cacheado con datos de otras agencias.
+// La revalidacion on-demand (via /api/revalidate) ya no es necesaria para la homepage
+// porque cada request consulta la API fresca y aplica el filtro de agency_id.
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  // 1. Obtener propiedades (esto se cachea en Netlify/Next.js)
+  // 1. Obtener propiedades frescas de la API (nunca desde cache de Netlify)
   const allProperties = await getProperties();
   
   // 2. Filtrado estricto por Agencia 2 (Inmovalores)

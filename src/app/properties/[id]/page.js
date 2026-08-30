@@ -2,9 +2,9 @@ import { getProperty, getPropertyAssignment } from '@/lib/api';
 import PropertyDetailClient from '@/components/PropertyDetailClient';
 import Link from 'next/link';
 
-// Configuración ISR (Incremental Static Regeneration)
-// Revalidar cada 1 hora (3600 segundos)
-export const revalidate = 3600;
+// Renderizado dinamico: cada request consulta la API fresca.
+// Evita mostrar propiedades de otras agencias desde cache.
+export const dynamic = 'force-dynamic';
 
 // Generar Metadata para SEO y Facebook/WhatsApp (OpenGraph)
 export async function generateMetadata({ params }) {
